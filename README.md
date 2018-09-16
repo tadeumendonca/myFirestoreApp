@@ -1,4 +1,4 @@
 # myFirestoreApp
 My first Firebase Firestore App within Kotlin Android development.
 
-To get started, put your own google-services.json from Firestore account.
+To get started, put your own google-services.json from Firebase Firestore account.
