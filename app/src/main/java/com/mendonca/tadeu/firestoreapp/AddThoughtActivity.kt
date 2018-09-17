@@ -48,12 +48,12 @@ class AddThoughtActivity : AppCompatActivity() {
 
     fun addPostClicked(view: View){
         val data = HashMap<String,Any>()
-        data.put("category",selectedCategory)
-        data.put("numComments",0)
-        data.put("numLikes",0)
-        data.put("thoughtTxt",addThoughtText.text.toString())
-        data.put("timestamp", FieldValue.serverTimestamp())
-        data.put("username", addUsernameText.text.toString())
+        data.put(CATEGORY,selectedCategory)
+        data.put(NUM_COMMENTS,0)
+        data.put(NUM_LIKES,0)
+        data.put(THOUGHT_TXT,addThoughtText.text.toString())
+        data.put(TIMESTAMP, FieldValue.serverTimestamp())
+        data.put(USERNAME, addUsernameText.text.toString())
         FirebaseFirestore.getInstance().collection(THOUGHTS_REF)
                 .add(data)
                 .addOnSuccessListener {
