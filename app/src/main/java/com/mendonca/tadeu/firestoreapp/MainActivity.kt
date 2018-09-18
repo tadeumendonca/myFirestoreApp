@@ -10,6 +10,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.android.synthetic.main.activity_add_thought.*
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -22,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var thoughtsAdapter: ThoughtsAdapter
     val thoughts = arrayListOf<Thought>()
     val thoughtsCollectionRef = FirebaseFirestore.getInstance().collection(THOUGHTS_REF)
+    lateinit var thoughtsListener : ListenerRegistration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,25 +42,7 @@ class MainActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(this)
         thoughtListView.layoutManager = layoutManager
 
-        thoughtsCollectionRef.get()
-                .addOnSuccessListener { snapshot ->
-                    for (document in snapshot.documents){
-                        val data = document.data
-                        val name = data!![USERNAME] as String
-                        val timestamp = data!![TIMESTAMP] as Date
-                        val thoughtTxt = data!![THOUGHT_TXT] as String
-                        val numLikes = data!![NUM_LIKES] as Long
-                        val numComments = data!![NUM_COMMENTS] as Long
-                        val documentId = document.id
 
-                        val newThought = Thought(name, timestamp , thoughtTxt, numLikes.toInt() , numComments.toInt() , documentId)
-                        thoughts.add(newThought)
-                    }
-                    thoughtsAdapter.notifyDataSetChanged()
-                }
-                .addOnFailureListener { exception ->
-                    Log.e("Exception","Could not get Thoughts: $exception")
-                }
     }
 
     fun mainFunnyClicked(view: View) {
@@ -68,6 +54,10 @@ class MainActivity : AppCompatActivity() {
         mainCrazyButton.isChecked = false
         mainPopularButton.isChecked = false
         selectedCategory = FUNNY
+
+        // Reset Documents Listener
+        thoughtsListener.remove()
+        setListener()
     }
 
     fun mainSeriousClicked(view: View) {
@@ -79,6 +69,10 @@ class MainActivity : AppCompatActivity() {
         mainCrazyButton.isChecked = false
         mainPopularButton.isChecked = false
         selectedCategory = SERIOUS
+
+        // Reset Documents Listener
+        thoughtsListener.remove()
+        setListener()
     }
 
     fun mainCrazyClicked(view: View){
@@ -90,6 +84,10 @@ class MainActivity : AppCompatActivity() {
         mainFunnyButton.isChecked = false
         mainPopularButton.isChecked = false
         selectedCategory = CRAZY
+
+        // Reset Documents Listener
+        thoughtsListener.remove()
+        setListener()
     }
 
     fun mainPopularClicked(view: View){
@@ -101,6 +99,58 @@ class MainActivity : AppCompatActivity() {
         mainFunnyButton.isChecked = false
         mainCrazyButton.isChecked = false
         selectedCategory = POPULAR
+
+        // Reset Documents Listener
+        thoughtsListener.remove()
+        setListener()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setListener()
+    }
+
+    fun setListener(){
+        if(selectedCategory == POPULAR){
+            // show popular documents
+            thoughtsListener = thoughtsCollectionRef
+                    .orderBy(NUM_LIKES, Query.Direction.DESCENDING)
+                    .addSnapshotListener(this){ snapshot, exception ->
+                        if(exception != null)
+                            Log.e("Exception","Could not retrieve documents: $exception")
+                        if(snapshot != null){
+                            parseData(snapshot)
+                        }
+                    }
+        } else {
+            thoughtsListener = thoughtsCollectionRef
+                .orderBy(TIMESTAMP, Query.Direction.DESCENDING)
+                .whereEqualTo(CATEGORY, selectedCategory)
+                .addSnapshotListener(this){ snapshot, exception ->
+                    if(exception != null)
+                        Log.e("Exception","Could not retrieve documents: $exception")
+                    if(snapshot != null){
+                        parseData(snapshot)
+                    }
+                }
+        }
+
+    }
+
+    fun parseData(snapshot : QuerySnapshot){
+        thoughts.clear()
+        for (document in snapshot.documents){
+            val data = document.data
+            val name = data!![USERNAME] as String
+            val timestamp = data!![TIMESTAMP] as Date
+            val thoughtTxt = data!![THOUGHT_TXT] as String
+            val numLikes = data!![NUM_LIKES] as Long
+            val numComments = data!![NUM_COMMENTS] as Long
+            val documentId = document.id
+            val newThought = Thought(name, timestamp , thoughtTxt, numLikes.toInt() , numComments.toInt() , documentId)
+            thoughts.add(newThought)
+        }
+        thoughtsAdapter.notifyDataSetChanged()
     }
 
 }
