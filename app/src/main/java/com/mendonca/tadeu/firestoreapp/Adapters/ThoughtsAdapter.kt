@@ -5,8 +5,11 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mendonca.tadeu.firestoreapp.Interfaces.ThoughtOptionsClickListener
 import com.mendonca.tadeu.firestoreapp.Model.Thought
 import com.mendonca.tadeu.firestoreapp.R
 import com.mendonca.tadeu.firestoreapp.Utilities.NUM_LIKES
@@ -14,7 +17,8 @@ import com.mendonca.tadeu.firestoreapp.Utilities.THOUGHTS_REF
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ThoughtsAdapter(val thoughts : ArrayList<Thought>, val itemClick : (Thought) -> Unit) : RecyclerView.Adapter<ThoughtsAdapter.ViewHolder>() {
+class ThoughtsAdapter(val thoughts : ArrayList<Thought>, val thoughtOptionsClickListener: ThoughtOptionsClickListener, val itemClick : (Thought) -> Unit) : RecyclerView.Adapter<ThoughtsAdapter.ViewHolder>() {
+
     override fun getItemCount(): Int {
         return thoughts.count()
     }
@@ -35,8 +39,9 @@ class ThoughtsAdapter(val thoughts : ArrayList<Thought>, val itemClick : (Though
         val numLikes = itemView.findViewById<TextView>(R.id.listViewNumLikesLabel)
         val likesImage = itemView.findViewById<AppCompatImageView>(R.id.listViewLikesImage)
         val numComments = itemView.findViewById<TextView>(R.id.numCommentsLabel)
-
+        val optionsImage = itemView.findViewById<ImageView>(R.id.thoughtOptionsImage)
         fun bindThought(thought: Thought){
+            optionsImage?.visibility = View.INVISIBLE
             username?.text = thought.username
             thoughtTxt?.text = thought.thoughtTxt
             numLikes?.text = thought.numLikes.toString()
@@ -48,6 +53,13 @@ class ThoughtsAdapter(val thoughts : ArrayList<Thought>, val itemClick : (Though
             likesImage?.setOnClickListener{
                 FirebaseFirestore.getInstance().collection(THOUGHTS_REF).document(thought.documentId)
                         .update(NUM_LIKES,thought.numLikes+1)
+            }
+
+            if(FirebaseAuth.getInstance().currentUser?.uid == thought.userId){
+                optionsImage?.visibility = View.VISIBLE
+                optionsImage.setOnClickListener{
+                    thoughtOptionsClickListener.thoughtOptionsMenuClicked(thought)
+                }
             }
 
         }

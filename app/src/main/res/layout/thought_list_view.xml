@@ -87,4 +87,15 @@
         app:layout_constraintTop_toTopOf="@+id/imageView"
         tools:text="99" />
 
+    <ImageView
+        android:id="@+id/thoughtOptionsImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="@+id/listViewTimestamp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/listViewTimestamp"
+        app:srcCompat="@drawable/optionsimagedark" />
+
 </android.support.constraint.ConstraintLayout>

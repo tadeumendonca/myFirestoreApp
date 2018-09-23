@@ -15,6 +15,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.mendonca.tadeu.firestoreapp.*
 import com.mendonca.tadeu.firestoreapp.Adapters.ThoughtsAdapter
+import com.mendonca.tadeu.firestoreapp.Interfaces.ThoughtOptionsClickListener
 import com.mendonca.tadeu.firestoreapp.Model.Thought
 import com.mendonca.tadeu.firestoreapp.Utilities.*
 
@@ -22,7 +23,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ThoughtOptionsClickListener {
 
     private var selectedCategory = FUNNY
     lateinit var thoughtsAdapter: ThoughtsAdapter
@@ -41,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(addThoughtIntent)
         }
 
-        thoughtsAdapter = ThoughtsAdapter(thoughts) { thought ->
+        thoughtsAdapter = ThoughtsAdapter(thoughts, this) { thought ->
             val commentsActivity = Intent(this,CommentsActivity::class.java)
             commentsActivity.putExtra(DOCUMENT_KEY,thought.documentId)
             startActivity(commentsActivity)
@@ -60,6 +61,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
+    }
+
+    override fun thoughtOptionsMenuClicked(thought: Thought) {
+        println(thought.thoughtTxt)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
@@ -201,13 +206,14 @@ class MainActivity : AppCompatActivity() {
         thoughts.clear()
         for (document in snapshot.documents){
             val data = document.data
-            val name = data!![USERNAME] as String
-            val timestamp = data!![TIMESTAMP] as Date
-            val thoughtTxt = data!![THOUGHT_TXT] as String
-            val numLikes = data!![NUM_LIKES] as Long
-            val numComments = data!![NUM_COMMENTS] as Long
+            val name = data?.get(USERNAME) as String
+            val timestamp = data?.get(TIMESTAMP) as Date
+            val thoughtTxt = data?.get(THOUGHT_TXT) as String
+            val numLikes = data?.get(NUM_LIKES) as Long
+            val numComments = data?.get(NUM_COMMENTS) as Long
             val documentId = document.id
-            val newThought = Thought(name, timestamp, thoughtTxt, numLikes.toInt(), numComments.toInt(), documentId)
+            val userId = data?.get(USER_ID) as String
+            val newThought = Thought(name, timestamp, thoughtTxt, numLikes.toInt(), numComments.toInt(), documentId, userId)
             thoughts.add(newThought)
         }
         thoughtsAdapter.notifyDataSetChanged()

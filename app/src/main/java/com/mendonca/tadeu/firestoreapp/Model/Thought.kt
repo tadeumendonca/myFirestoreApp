@@ -7,4 +7,5 @@ data class Thought constructor(val username: String,
                                val thoughtTxt: String,
                                val numLikes: Int,
                                val NumComments: Int,
-                               val documentId: String)
+                               val documentId: String,
+                               val userId: String)
