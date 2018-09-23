@@ -1,8 +1,7 @@
-package com.mendonca.tadeu.firestoreapp
+package com.mendonca.tadeu.firestoreapp.Activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
@@ -14,7 +13,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
-import kotlinx.android.synthetic.main.activity_add_thought.*
+import com.mendonca.tadeu.firestoreapp.*
+import com.mendonca.tadeu.firestoreapp.Adapters.ThoughtsAdapter
+import com.mendonca.tadeu.firestoreapp.Model.Thought
+import com.mendonca.tadeu.firestoreapp.Utilities.*
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -35,11 +37,15 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            val addThoughtIntent = Intent(this,AddThoughtActivity::class.java)
+            val addThoughtIntent = Intent(this, AddThoughtActivity::class.java)
             startActivity(addThoughtIntent)
         }
 
-        thoughtsAdapter = ThoughtsAdapter(thoughts)
+        thoughtsAdapter = ThoughtsAdapter(thoughts) { thought ->
+            val commentsActivity = Intent(this,CommentsActivity::class.java)
+            commentsActivity.putExtra(DOCUMENT_KEY,thought.documentId)
+            startActivity(commentsActivity)
+        }
         thoughtListView.adapter = thoughtsAdapter
         val layoutManager = LinearLayoutManager(this)
         thoughtListView.layoutManager = layoutManager
@@ -201,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             val numLikes = data!![NUM_LIKES] as Long
             val numComments = data!![NUM_COMMENTS] as Long
             val documentId = document.id
-            val newThought = Thought(name, timestamp , thoughtTxt, numLikes.toInt() , numComments.toInt() , documentId)
+            val newThought = Thought(name, timestamp, thoughtTxt, numLikes.toInt(), numComments.toInt(), documentId)
             thoughts.add(newThought)
         }
         thoughtsAdapter.notifyDataSetChanged()

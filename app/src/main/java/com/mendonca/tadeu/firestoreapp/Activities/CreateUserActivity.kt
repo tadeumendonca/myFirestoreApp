@@ -1,4 +1,4 @@
-package com.mendonca.tadeu.firestoreapp
+package com.mendonca.tadeu.firestoreapp.Activities
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -8,6 +8,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mendonca.tadeu.firestoreapp.Utilities.DATE_CREATED
+import com.mendonca.tadeu.firestoreapp.R
+import com.mendonca.tadeu.firestoreapp.Utilities.USERNAME
+import com.mendonca.tadeu.firestoreapp.Utilities.USERS_REF
 import kotlinx.android.synthetic.main.activity_create_user.*
 
 class CreateUserActivity : AppCompatActivity() {

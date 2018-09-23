@@ -1,4 +1,4 @@
-package com.mendonca.tadeu.firestoreapp
+package com.mendonca.tadeu.firestoreapp.Model
 
 import java.util.*
 

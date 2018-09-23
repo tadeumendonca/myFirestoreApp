@@ -1,11 +1,14 @@
-package com.mendonca.tadeu.firestoreapp
+package com.mendonca.tadeu.firestoreapp.Activities
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.mendonca.tadeu.firestoreapp.*
+import com.mendonca.tadeu.firestoreapp.Utilities.*
 import kotlinx.android.synthetic.main.activity_add_thought.*
 
 class AddThoughtActivity : AppCompatActivity() {
@@ -53,7 +56,7 @@ class AddThoughtActivity : AppCompatActivity() {
         data.put(NUM_LIKES,0)
         data.put(THOUGHT_TXT,addThoughtText.text.toString())
         data.put(TIMESTAMP, FieldValue.serverTimestamp())
-        data.put(USERNAME, addUsernameText.text.toString())
+        data.put(USERNAME, FirebaseAuth.getInstance().currentUser?.displayName.toString())
         FirebaseFirestore.getInstance().collection(THOUGHTS_REF)
                 .add(data)
                 .addOnSuccessListener {
