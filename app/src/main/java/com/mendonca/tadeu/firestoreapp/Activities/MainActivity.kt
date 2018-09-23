@@ -2,26 +2,26 @@ package com.mendonca.tadeu.firestoreapp.Activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
-import com.mendonca.tadeu.firestoreapp.*
+import com.google.firebase.firestore.*
 import com.mendonca.tadeu.firestoreapp.Adapters.ThoughtsAdapter
 import com.mendonca.tadeu.firestoreapp.Interfaces.ThoughtOptionsClickListener
 import com.mendonca.tadeu.firestoreapp.Model.Thought
+import com.mendonca.tadeu.firestoreapp.R
 import com.mendonca.tadeu.firestoreapp.Utilities.*
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.*
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity(), ThoughtOptionsClickListener {
 
@@ -64,7 +64,55 @@ class MainActivity : AppCompatActivity(), ThoughtOptionsClickListener {
     }
 
     override fun thoughtOptionsMenuClicked(thought: Thought) {
-        println(thought.thoughtTxt)
+        val builder = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.options_menu,null)
+        val deleteButton = dialogView.findViewById<Button>(R.id.optionDeleteButton)
+        val editButton = dialogView.findViewById<Button>(R.id.optionEditButton)
+        editButton.visibility = View.GONE
+        builder.setView(dialogView)
+                .setNegativeButton("Cancel") {_,_ -> }
+
+        val ad = builder.show()
+
+        deleteButton.setOnClickListener {
+            val thoughtRef = FirebaseFirestore.getInstance().collection(THOUGHTS_REF).document(thought.documentId)
+            val collectionRef = FirebaseFirestore.getInstance().collection(THOUGHTS_REF).document(thought.documentId).collection(COMMENTS_REF)
+            deleteCollection(collectionRef,thought){success ->
+                if(success){
+                    thoughtRef.delete()
+                            .addOnSuccessListener {
+                                ad.dismiss()
+                            }
+                            .addOnFailureListener { exception ->
+                                Log.e("Exception","Could not delete thought: ${exception.localizedMessage}")
+                            }
+                }
+            }
+        }
+
+//        editButton.setOnClickListener {
+//            // Edit Thought
+//        }
+    }
+
+    fun deleteCollection(collection : CollectionReference, thought: Thought,complete: (Boolean) -> Unit){
+        collection.get().addOnSuccessListener { snapshot ->
+            thread{
+                val batch = FirebaseFirestore.getInstance().batch()
+                for(document in snapshot){
+                    val docRef = FirebaseFirestore.getInstance().collection(THOUGHTS_REF).document(thought.documentId)
+                            .collection(COMMENTS_REF).document(document.id)
+                    batch.delete(docRef)
+                }
+                batch.commit()
+                        .addOnSuccessListener { complete(true) }
+                        .addOnFailureListener { exception ->
+                            Log.e("Exception","Could not delete subcollection: ${exception.localizedMessage}")
+                        }
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("Exception","Could not retrieve documents: ${exception.localizedMessage}")
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
